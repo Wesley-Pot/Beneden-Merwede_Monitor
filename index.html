@@ -1,137 +1,76 @@
 <!DOCTYPE html>
-<html>
+<html lang="nl">
 <head>
 <meta charset="utf-8">
-<title>Kaart Test</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Beneden-Merwede AIS Monitor</title>
 
 <link rel="stylesheet"
-href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"/>
+      href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"/>
 
 <style>
 html, body, #map {
     height: 100%;
     margin: 0;
 }
-</style>
 
+#panel {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+#apikey {
+    width: 250px;
+}
+
+button {
+    margin-top: 5px;
+    width: 100%;
+}
+</style>
 </head>
+
 <body>
 
-<div style="position:absolute;z-index:1000;background:white;padding:10px;">
-<input id="apikey" placeholder="AISStream API Key">
+<div id="panel">
+    <input
+        id="apikey"
+        type="text"
+        placeholder="AISStream API key">
+
+    <button onclick="connectAIS()">
+        Verbinden
+    </button>
 </div>
-    
+
 <div id="map"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-const ws = new WebSocket("wss://stream.aisstream.io/v0/stream");
 
-ws.onopen = () => {
+const map = L.map('map').setView(
+    [51.825, 4.705],
+    14
+);
 
-    console.log("Verbonden met AISStream");
-
-    ws.send(JSON.stringify({
-        APIKey: document.getElementById("apikey").value,
-        BoundingBoxes: [
-            [
-                [51.815, 4.63],
-                [51.84, 4.77]
-            ]
-        ],
-        FilterMessageTypes: [
-            "PositionReport"
-        ]
-    }));
-
-};
-
-const vessels = {};
+L.tileLayer(
+    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {
+        attribution: '&copy; OpenStreetMap'
+    }
+).addTo(map);
 
 const ferries = {
-  "244750274":"GORINCHEM VI",
-  "244830746":"MRD STRIKER",
-  "244750693":"MRD TRANSFER"
-};
-
-function createIcon(color){
-  return L.divIcon({
-    className: "",
-    html: `
-      <div style="
-        width:12px;
-        height:12px;
-        border-radius:50%;
-        background:${color};
-        border:2px solid white;
-      "></div>
-    `
-  });
-}
-
-ws.onmessage = async (event) => {
-
-  const text = await event.data.text();
-
-  let msg;
-
-  try{
-    msg = JSON.parse(text);
-  }
-  catch{
-    return;
-  }
-
-  if(msg.MessageType !== "PositionReport")
-    return;
-
-  const meta = msg.MetaData;
-  const report = msg.Message.PositionReport;
-
-  const mmsi = String(meta.MMSI);
-
-  const lat = report.Latitude;
-  const lon = report.Longitude;
-
-  let marker = vessels[mmsi];
-
-  const isFerry = ferries[mmsi];
-
-  if(!marker){
-
-    marker = L.marker(
-      [lat, lon],
-      {
-        icon: createIcon(
-          isFerry ? "#0078ff" : "#808080"
-        )
-      }
-    );
-
-    marker.addTo(map);
-
-    vessels[mmsi] = marker;
-  }
-  else{
-    marker.setLatLng([lat, lon]);
-  }
-
-  marker.bindPopup(`
-    <b>${meta.ShipName || "Onbekend"}</b><br>
-    MMSI: ${mmsi}<br>
-    Snelheid: ${report.Sog / 10} kn
-  `);
-};
-
-ws.onerror = (err) => {
-    console.log("WS ERROR", err);
-};
-
-ws.onclose = () => {
-    console.log("Verbinding gesloten");
-};
-</script>
-
-</body>
-</html>
+    "244750274": "GORINCHEM VI",
+    "244830746": "MRD STRIKER",
+    "
