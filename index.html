@@ -56,10 +56,11 @@ button {
 
 <script>
 
-const map = L.map('map').setView(
-    [51.824, 4.718],
-    16
-);
+const map = L.map('map');
+map.fitBounds([
+    [51.818, 4.70],
+    [51.827, 4.74]
+]);
 
 L.tileLayer(
     'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -154,7 +155,10 @@ function connectAIS() {
         }
 
         const mmsi = String(meta.MMSI);
-
+        if (!ferries[mmsi]) {
+            return;
+        }
+        
         const lat = report.Latitude;
         const lon = report.Longitude;
 
@@ -182,9 +186,12 @@ function connectAIS() {
             marker.setLatLng([lat, lon]);
         }
 
-        marker.bindPopup(
-            "<b>" + (meta.ShipName || "Onbekend") + "</b><br>" +
-            "MMSI: " + mmsi
+       marker.bindTooltip(
+            ferries[mmsi],
+            {
+                permanent: true,
+                direction: 'right'
+            }
         );
     };
 
