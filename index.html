@@ -1,276 +1,36 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html>
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Beneden-Merwede AIS Monitor</title>
+    <meta charset="utf-8">
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/distdy{
-    height:100%;
-    margin:0;
-    font-family:Arial,Helvetica,sans-serif;
-}
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
-#map{
-    height:100%;
-}
-
-#panel{
-    position:absolute;
-    z-index:1000;
-    top:10px;
-    left:10px;
-    background:white;
-    padding:10px;
-    border-radius:10px;
-    box-shadow:0 0 10px rgba(0,0,0,0.3);
-    width:280px;
-}
-
-input{
-    width:100%;
-    box-sizing:border-box;
-}
-
-button{
-    width:100%;
-    margin-top:5px;
-}
-
-.ferry-label{
-    color:#0066ff;
-    font-weight:bold;
-}
-</style>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js      height: 100%;
+            margin: 0;
+        }
+    </style>
 </head>
 
 <body>
 
-<div id="panel">
-    <h3>Beneden-Merwede</h3>
-
-    <input
-        id="apikey"
-        placeholder="AISStream API Key">
-
-    <button onclick="connectAIS()">
-        Verbinden
-    </button>
-
-    <p id="status">Niet verbonden</p>
-
-    <hr>
-
-    <b>Veerponten</b>
-
-    <div class="ferry-label">
-        GORINCHEM VI
-    </div>
-
-    <div class="ferry-label">
-        MRD STRIKER
-    </div>
-
-    <div class="ferry-label">
-        MRD TRANSFER
-    </div>
-
-    <hr>
-
-    <div id="vesselCount">
-        Schepen in beeld: 0
-    </div>
-</div>
-
 <div id="map"></div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaf
 
 <script>
 
-const ferries = {
-    "244750274":"GORINCHEM VI",
-    "244830746":"MRD STRIKER",
-    "244750693":"MRD TRANSFER"
-};
-
-const vessels = {};
-
-const map = L.map("map",{
-    zoomControl:true
-});
-
-const bounds = [
-    [51.815,4.63],
-    [51.84,4.77]
-];
-
-map.fitBounds(bounds);
+const map = L.map('map').setView(
+    [51.825, 4.70],
+    13
+);
 
 L.tileLayer(
-    "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     {
-        attribution:"© OpenStreetMap"
+        attribution: '© OpenStreetMap'
     }
 ).addTo(map);
-
-function saveKey(){
-    localStorage.setItem(
-        "aisstream_key",
-        document.getElementById("apikey").value
-    );
-}
-
-document.getElementById("apikey").value =
-    localStorage.getItem("aisstream_key") || "";
-
-document
-.getElementById("apikey")
-.addEventListener("change",saveKey);
-
-function createIcon(color){
-
-    return L.divIcon({
-        className:"",
-        html:
-        `<div style="
-            width:12px;
-            height:12px;
-            border-radius:50%;
-            background:${color};
-            border:2px solid white;
-        "></div>`
-    });
-}
-
-function connectAIS(){
-
-    const key =
-        document.getElementById("apikey").value;
-
-    localStorage.setItem(
-        "aisstream_key",
-        key
-    );
-
-    const ws =
-        new WebSocket(
-            "wss://stream.aisstream.io/v0/stream"
-        );
-
-    ws.onopen = () => {
-
-        document.getElementById(
-            "status"
-        ).innerText = "Verbonden";
-
-        ws.send(JSON.stringify({
-
-            APIKey:key,
-
-            BoundingBoxes:[
-                [
-                    [51.815,4.63],
-                    [51.84,4.77]
-                ]
-            ]
-
-        }));
-    };
-
-    ws.onmessage = event => {
-
-        try{
-
-            const data =
-                JSON.parse(event.data);
-
-            if(
-                !data.Message ||
-                !data.Message.PositionReport
-            ){
-                return;
-            }
-
-            const report =
-                data.Message.PositionReport;
-
-            const meta =
-                data.MetaData || {};
-
-            const mmsi =
-                String(meta.MMSI || "");
-
-            const lat =
-                report.Latitude;
-
-            const lon =
-                report.Longitude;
-
-            const isFerry =
-                ferries[mmsi];
-
-            let marker =
-                vessels[mmsi];
-
-            if(!marker){
-
-                marker = L.marker(
-                    [lat,lon],
-                    {
-                        icon:createIcon(
-                            isFerry
-                            ? "#0078ff"
-                            : "#666666"
-                        )
-                    }
-                );
-
-                marker.addTo(map);
-
-                vessels[mmsi] = marker;
-
-            }else{
-
-                marker.setLatLng(
-                    [lat,lon]
-                );
-            }
-
-            marker.bindPopup(
-                `
-                <b>${meta.ShipName || "Onbekend"}</b><br>
-                MMSI: ${mmsi}
-                `
-            );
-
-            document.getElementById(
-                "vesselCount"
-            ).innerText =
-            "Schepen in beeld: " +
-            Object.keys(vessels).length;
-
-        }
-        catch(err){
-            console.log(err);
-        }
-    };
-
-    ws.onerror = () => {
-        document.getElementById(
-            "status"
-        ).innerText = "Verbindingsfout";
-    };
-
-    ws.onclose = () => {
-        document.getElementById(
-            "status"
-        ).innerText = "Verbinding verbroken";
-    };
-}
 
 </script>
 
 </body>
 </html>
-``
