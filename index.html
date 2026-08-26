@@ -22,16 +22,38 @@ html, body, #map {
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-alert("Javascript gestart");
+const ws = new WebSocket("wss://stream.aisstream.io/v0/stream");
 
-const map = L.map('map').setView([51.825, 4.70], 13);
+ws.onopen = () => {
 
-L.tileLayer(
-    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    {
-        attribution: '&copy; OpenStreetMap'
-    }
-).addTo(map);
+    console.log("Verbonden met AISStream");
+
+    ws.send(JSON.stringify({
+        APIKey: document.getElementById("apikey").value,
+        BoundingBoxes: [
+            [
+                [51.815, 4.63],
+                [51.84, 4.77]
+            ]
+        ],
+        FilterMessageTypes: [
+            "PositionReport"
+        ]
+    }));
+
+};
+
+ws.onmessage = (event) => {
+    console.log(JSON.parse(event.data));
+};
+
+ws.onerror = (err) => {
+    console.log("WS ERROR", err);
+};
+
+ws.onclose = () => {
+    console.log("Verbinding gesloten");
+};
 </script>
 
 </body>
