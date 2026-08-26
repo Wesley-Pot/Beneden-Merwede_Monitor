@@ -47,8 +47,16 @@ ws.onopen = () => {
 
 };
 
-ws.onmessage = (event) => {
-    console.log("RAW:", event.data);
+ws.onmessage = async (event) => {
+    const text = await event.data.text();
+    console.log("TEXT:", text);
+    try {
+        const msg = JSON.parse(text);
+        console.log("JSON:", msg);
+    }
+    catch(err) {
+        console.log("Geen JSON:", text);
+    }
 };
 
 ws.onerror = (err) => {
