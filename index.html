@@ -1,4 +1,45 @@
 <!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Beneden-Merwede Monitor</title>
+
+<link rel="stylesheet"
+ href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"/>
+
+<style>
+html, body, #map {
+}
+</style>
+
+</head>
+
+<body>
+
+<div id="map"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/distript>
+
+<script>
+
+const map = L.map('map').setView(
+    [51.825, 4.70],
+    13
+);
+
+L.tileLayer(
+    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {
+        attribution: '&copy; OpenStreetMap'
+    }
+).addTo(map);
+
+</script>
+
+</body>
+</html><!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
