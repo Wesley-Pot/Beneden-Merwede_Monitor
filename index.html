@@ -48,7 +48,7 @@ ws.onopen = () => {
 };
 
 ws.onmessage = (event) => {
-    console.log(JSON.parse(event.data));
+    console.log("RAW:", event.data);
 };
 
 ws.onerror = (err) => {
